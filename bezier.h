@@ -224,7 +224,7 @@ namespace bezier {
             add_segment_point([&](types::real_t t) { return (*this)(f, t, segment); }, 0,
                               segment_size);
 
-            segments == 0 ? end()
+            segments == 1 ? end()
                           : process_segment(f, segment + 1, segments - 1, size - segment_size);
         }
 
