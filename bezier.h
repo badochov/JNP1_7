@@ -49,9 +49,10 @@ namespace bezier {
 
     namespace detail {
         const types::real_t ARC = 4 * (std::sqrt(2) - 1) / 3;
-
+        // Degrees to radians converter;
         const types::real_t DEG_TO_RAD = M_PI / 180;
 
+        // Helper points for predefined functions returning points.
         constexpr types::point_2d neg_pos(-1, 1);
         constexpr types::point_2d neg_neg(-1, -1);
         constexpr types::point_2d pos_neg(1, -1);
@@ -59,6 +60,8 @@ namespace bezier {
         constexpr types::point_2d zero_pos(0, 1);
         constexpr types::point_2d pos_zero(1, 0);
 
+        // Helper function to return function that return i-th point
+        // or throws std::out_of_range if i is larger than constants::NUM_OF_CUBIC_BEZIER_NODES.
         types::point_function_t four_points_function(const types::point_2d &point0,
                                                      const types::point_2d &point1,
                                                      const types::point_2d &point2,
@@ -171,8 +174,9 @@ namespace bezier {
         should_be_printed_fn_t should_be_printed = [](size_t, size_t) { return false; };
         size_t resolution;
 
-        [[nodiscard]] static types::real_t get_coord(size_t part, size_t parts) {
-            return MIN_RANGE + (MAX_RANGE - MIN_RANGE) / parts * part;
+        // Returns nth segment of equally divided into 'size' segments [MIN_RANGE, MAX_RANGE].
+        [[nodiscard]] static types::real_t get_coord(size_t n, size_t size) {
+            return MIN_RANGE + (MAX_RANGE - MIN_RANGE) / size * n;
         }
 
         [[nodiscard]] static bool in_area(const types::point_2d &point) {
@@ -181,12 +185,15 @@ namespace bezier {
 
         void add_to_printed(const types::point_2d &point) {
             static const types::point_2d normalizer(-MIN_X, -MIN_Y);
+            static const types::real_t y_normalization = ((types::real_t) (resolution - 1) / (MAX_Y - MIN_Y));
+            static const types::real_t x_normalization = ((types::real_t) (resolution - 1) / (MAX_X - MIN_X));
+
             types::point_2d normalized = point + normalizer;
 
             types::real_t x =
-                    std::round(normalized.X * ((types::real_t) (resolution - 1) / (MAX_X - MIN_X)));
+                    std::round(normalized.X * x_normalization);
             types::real_t y =
-                    std::round(normalized.Y * ((types::real_t) (resolution - 1) / (MAX_Y - MIN_Y)));
+                    std::round(normalized.Y * y_normalization);
 
             should_be_printed = [prev = std::move(should_be_printed), x, y](size_t _x, size_t _y) {
                 return (x == _x && y == _y) || prev(_x, _y);
@@ -208,6 +215,9 @@ namespace bezier {
             row == 0 ? end() : print_row(row - 1, os, fg, bg);
         }
 
+        // Evaluates Bezier curve and adds generated point to printed if is in range.
+        // size - amount of points that should be generated.
+        // i - which of those 'size' points is evaluated.
         void add_segment_point(const std::function<types::point_2d(types::real_t)> &f, size_t i,
                                size_t size) {
             types::real_t t = get_coord(i, size);
@@ -217,6 +227,8 @@ namespace bezier {
             i == size - 1 ? end() : add_segment_point(f, i + 1, size);
         }
 
+        // Processes segment of point returning function.
+        // Recursively calls itself until all segments are processed.
         void process_segment(const types::point_function_t &f, size_t segment, size_t segments,
                              size_t size) {
             size_t segment_size = std::ceil((types::real_t) size / segments);
