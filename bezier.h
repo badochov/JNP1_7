@@ -382,12 +382,10 @@ namespace bezier {
                                               const size_t i) {
                                               const types::real_t t = get_coord(i, segment_size);
                                               const types::point_2d point = (*this)(f, t, segment);
-                                              const P3CurvePlotter::point p = create_point(
-                                                      point);
+                                              const P3CurvePlotter::point p = create_point(point);
                                               return in_area(point) ?
-                                                     points_to_print_base_t::make_list(
-                                                             p, _print)
-                                                                    : _print;
+                                                     points_to_print_base_t::make_list(p, _print) :
+                                                     _print;
 
                                           }, p);
 
