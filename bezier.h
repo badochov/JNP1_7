@@ -336,8 +336,8 @@ namespace bezier {
             const types::point_2d point = f(t);
             const P3CurvePlotter::point p = create_point(point);
 
-            const points_to_print_t print = in_area(point) ? should
-                                            //                    points_to_print_base_t::make_list(p, should)
+            const points_to_print_t print = in_area(point) ?
+                                            points_to_print_base_t::make_list(p, should)
                                                            : should;
 
             return i == size - 1 ? print : add_segment_point(f, i + 1, size, print);
@@ -368,39 +368,6 @@ namespace bezier {
                     f, 0, segments, resolution * resolution, points_to_print_base_t::get_empty());
             const points_to_print_t sorted = points_to_print_base_t::sort(points);
             return points_to_print_base_t::unique(sorted);
-        }
-
-        [[nodiscard]] points_to_print_t
-        get_points_to_print_ex(const types::point_function_t &f, const types::segment_number_t segments) const {
-            size_t size = resolution * resolution;
-            const points_to_print_t points = range_fold(
-                    0, segments,
-                    [&](const points_to_print_t &p, const size_t segment) {
-                        const size_t segment_size = size / segments;
-                        return range_fold(0, segment_size,
-                                          [&](const points_to_print_t &_print,
-                                              const size_t i) {
-                                              const types::real_t t = get_coord(i, segment_size);
-                                              const types::point_2d point = (*this)(f, t, segment);
-                                              const P3CurvePlotter::point p = create_point(point);
-                                              return in_area(point) ?
-                                                     points_to_print_base_t::make_list(p, _print) :
-                                                     _print;
-
-                                          }, p);
-
-
-                    }, points_to_print_base_t::get_empty());
-
-            const points_to_print_t sorted = points_to_print_base_t::sort(points);
-            return points_to_print_base_t::unique(sorted);
-        }
-
-        static points_to_print_t
-        range_fold(const size_t b, const size_t e,
-                   const std::function<points_to_print_t(const points_to_print_t &, size_t)> &f,
-                   const points_to_print_t &p) {
-            return b < e - 1 ? range_fold(b + 1, e, f, f(p, b)) : f(p, b);
         }
 
         static bool
@@ -435,7 +402,7 @@ namespace bezier {
                                 const types::segment_number_t segments = constants::DEFAULT_NUM_SEGMENTS,
                                 const size_t _resolution = constants::DEFAULT_RESOLUTION)
                 : resolution(_resolution),
-                  points_to_print(get_points_to_print_ex(f, segments)) {
+                  points_to_print(get_points_to_print(f, segments)) {
         }
 
 
